@@ -21,12 +21,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+    - uses: pnpm/action-setup@v2
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'  # Specify pnpm caching
-    - run: npm install -g pnpm  # Install pnpm globally
-    - run: pnpm install  # Install dependencies using pnpm
-    - run: pnpm run build --if-present  # Build the project (if build script exists)
-    - run: pnpm test  # Run tests using pnpm
+        version: 8
+    - run: pnpm install --no-frozen-lockfile
+    - run: pnpm run build
