@@ -25,7 +25,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        cache: 'pnpm'  # Specify pnpm caching
     - run: npm install -g pnpm  # Install pnpm globally
     - run: pnpm install  # Install dependencies using pnpm
     - run: pnpm run build --if-present  # Build the project (if build script exists)
