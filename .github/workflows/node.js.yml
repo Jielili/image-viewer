@@ -32,7 +32,7 @@ jobs:
     - name: Upload artifact to enable deployment
       uses: actions/upload-artifact@v4
       with:
-        name: build-output-${{ github.run_id }}
+        name: production-files
         path: ./dist
 
     # - name: Deploy to GitHub Pages
@@ -41,14 +41,19 @@ jobs:
     #     github_token: ${{ secrets.GITHUB_TOKEN }}  # Uses GitHub's default token to deploy
     #     publish_dir: dist  # Make sure this points to your build output directory÷
 
-
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build-output-${{ github.run_id }}
-        path: ./dist
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist
+  deploy:
+      # Add a dependency to the build job
+      needs: build
+      # Specify runner + deployment step
+      runs-on: ubuntu-latest
+      steps:
+        - name: Download artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: production-files
+            path: ./dist
+        - name: Deploy to GitHub Pages
+          uses: peaceiris/actions-gh-pages@v4
+          with:
+            github_token: ${{ secrets.DEPLOY_TOKEN }}
+            publish_dir: ./dist
