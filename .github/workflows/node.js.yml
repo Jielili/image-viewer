@@ -28,9 +28,26 @@ jobs:
         version: 8
     - run: pnpm install --no-frozen-lockfile
     - run: pnpm run build
+    - name: Upload artifact to enable deployment
+      uses: actions/upload-artifact@v3
+      with:
+        name: production-files
+        path: ./dist
 
+    # - name: Deploy to GitHub Pages
+    #   uses: peaceiris/actions-gh-pages@v3
+    #   with:
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}  # Uses GitHub's default token to deploy
+    #     publish_dir: dist  # Make sure this points to your build output directory÷
+
+
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: production-files
+        path: ./dist
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}  # Uses GitHub's default token to deploy
-        publish_dir: dist  # Make sure this points to your build output directory
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
