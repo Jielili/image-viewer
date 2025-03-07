@@ -44,7 +44,7 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: build-output-${{ github.run_id }}
+        name: production-files
         path: ./dist
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
