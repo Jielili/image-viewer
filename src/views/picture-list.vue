@@ -1,100 +1,172 @@
 <template>
-    <div class="gallery" ref="gallery">
-      <div v-for="(column, index) in columns" :key="index" class="column">
-        <div v-for="image in column" :key="image.id" class="image-card">
-          <img 
-            v-lazy="{
-              src: image.urls.small,
-              error: 'https://via.placeholder.com/300x400?text=Image+Not+Found'
-            }"
-            :alt="image.alt_description"
-          />
+  <div class="gallery">
+    <div ref="listRef" class="list-container">
+      <div
+        v-for="image in images"
+        :key="image.id"
+        class="image-card"
+        :style="{
+          height: image.thumbHeight + 'px',
+          transform: image.transform,
+        }"
+        ref="imageCardRef"
+      >
+        <img
+          :class="{ 'fade-in': image.isLoaded }"
+          :src="image.urls.thumb"
+          :alt="image.alt_description"
+        />
+      </div>
+      <div class="footer" :style="realFooterPosition">
+        <div v-if="allowFetchMore" class="loading">
+          <loading-dot />
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
-  <script>
-  import axios from "axios";
-  import { useLazyload } from 'vue3-lazyload';
-  
-  export default {
-    data() {
-      return {
-        images: [],
-        columns: [[], [], []],
-        page: 1,
-        isLoading: false,
-      };
-    },
-    mounted() {
-      this.loadImages();
-      window.addEventListener('scroll', this.onScroll);
-    },
-    methods: {
-      async loadImages() {
-        if (this.isLoading) return;
-        this.isLoading = true;
-  
-        const cachedData = localStorage.getItem('imageData');
-        if (cachedData) {
-          this.images = JSON.parse(cachedData);
-          this.distributeImages();
-          this.isLoading = false;
-          return;
-        }
-  
-        try {
-          const response = await axios.get("https://api.unsplash.com/photos", {
-            params: { page: this.page, per_page: 30 },
-            headers: { Authorization: `Client-ID 你的_ACCESS_KEY` },
-          });
-  
-          this.images.push(...response.data);
-          localStorage.setItem('imageData', JSON.stringify(this.images));
-          this.distributeImages();
-          this.page++;
-        } catch (error) {
-          console.error("Error fetching images:", error);
-        } finally {
-          this.isLoading = false;
-        }
-      },
-      distributeImages() {
-        this.columns = [[], [], []];
-        this.images.forEach((image, index) => {
-          this.columns[index % 3].push(image);
-        });
-      },
-      onScroll() {
-        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-        if (scrollTop + clientHeight >= scrollHeight - 100) {
-          this.loadImages();
-        }
+<script setup>
+import { fetchImages } from "@/api/index";
+import usePinterest from "./usePinterest";
+
+const images = ref([]);
+const allowFetchMore = ref(true);
+const loading = ref(false);
+const imageCardRef = ref([]);
+
+// ✅ 懒加载的核心
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const index = entry.target.dataset.index;
+        loadImage(index);
+        observer.unobserve(entry.target);
       }
-    },
-    beforeUnmount() {
-      window.removeEventListener('scroll', this.onScroll);
-    }
+    });
+  },
+  { rootMargin: "200px" }
+); // 提前 200px 加载
+
+const loadImage = (index) => {
+  const img = new Image();
+  img.src = images.value[index].urls.thumb;
+  img.onload = () => {
+    images.value[index].isLoaded = true;
   };
-  </script>
+  img.onerror = () => {
+    console.error(`Image ${index} failed to load`);
+  };
+};
+
+onMounted(async () => {
+  await getImages();
+  nextTick(() => {
+    imageCardRef.value.forEach((el, index) => {
+      if (el) {
+        el.dataset.index = index;
+        observer.observe(el);
+      }
+    });
+  });
+});
+
+const getImages = async () => {
+  try {
+    loading.value = true;
+    const response = await fetchImages();
+    images.value = response.data;
+    loading.value = false;
+  } catch (error) {
+    console.error("Error fetching images:", error);
+  }
+};
+
+const { listRef, footerTop } = usePinterest(images);
+
+const windowInnerHeight = inject("windowInnerHeight");
+const listContainerHeight = computed(() => windowInnerHeight.value - 48);
+const realFooterPosition = computed(() => {
+  if (loading.value || footerTop.value + 80 >= listContainerHeight.value) {
+    return {
+      top: `${footerTop.value}px`,
+    };
+  } else {
+    return {
+      bottom: "0",
+    };
+  }
+});
+</script>
   
-  <style scoped>
-  .gallery {
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-  }
-  .column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .image-card img {
-    width: 100%;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  </style>
-  
+<style scoped>
+.gallery {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  /* overflow-y: scroll; */
+  transition: background 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: opacity 1s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+}
+
+.image-card {
+  width: 230px;
+  position: absolute;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.5s ease;
+  overflow: hidden;
+}
+.image-card img {
+  width: 100%;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+.footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding: 32px 0 16px;
+}
+
+/* 图片加载成功的过渡效果 */
+.fade-enter-active {
+  transition: opacity 0.6s ease-in-out;
+}
+.fade-enter-from {
+  opacity: 0;
+}
+.fade-enter-to {
+  opacity: 1;
+}
+
+.image-card img.fade-in {
+  opacity: 1;
+}
+
+</style>
