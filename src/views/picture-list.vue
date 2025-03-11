@@ -29,9 +29,9 @@
 <script setup>
 import { fetchImages } from "@/api/index";
 import usePinterest from "./usePinterest";
+import useScrollEvent from '@/views/useScrollEvent'
 
 const images = ref([]);
-const allowFetchMore = ref(true);
 const loading = ref(false);
 const imageCardRef = ref([]);
 
@@ -62,21 +62,23 @@ const loadImage = (index) => {
 
 onMounted(async () => {
   await getImages();
-  nextTick(() => {
-    imageCardRef.value.forEach((el, index) => {
-      if (el) {
-        el.dataset.index = index;
-        observer.observe(el);
-      }
-    });
-  });
 });
 
 const getImages = async () => {
   try {
     loading.value = true;
     const response = await fetchImages();
-    images.value = response.data;
+    images.value.push(...response.data);
+    nextTick(() => {
+      // 在这里监听新添加的图片
+      imageCardRef.value.forEach((el, index) => {
+        if (el && !el.dataset.observed) {
+          el.dataset.index = index;
+          observer.observe(el);
+          el.dataset.observed = true; // 避免重复 observe
+        }
+      });
+    });
     loading.value = false;
   } catch (error) {
     console.error("Error fetching images:", error);
@@ -98,6 +100,16 @@ const realFooterPosition = computed(() => {
     };
   }
 });
+
+function more () {
+  if (loading.value) {
+    return
+  }
+  getImages()
+}
+
+const { addScrollEventListener, removeScrollEventListener, allowFetchMore } = useScrollEvent(more)
+
 </script>
   
 <style scoped>
@@ -117,8 +129,10 @@ const realFooterPosition = computed(() => {
   width: 100%;
   height: 100%;
   position: relative;
-  /* overflow-y: scroll; */
+  overflow-y: scroll;
   transition: background 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+  padding: 0 100px;
+  box-sizing: border-box;
 }
 
 .list-enter-active,

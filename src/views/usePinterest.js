@@ -16,7 +16,7 @@ export default function usePinterest (list) {
   })
 
   const resizeHandler = debounce(() => {
-    width.value = listRef.value.clientWidth
+    width.value = listRef.value.clientWidth - 200
   }, 100)
 
   const footerTop = computed(() => {
