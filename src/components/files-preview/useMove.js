@@ -28,7 +28,7 @@ export default function useMove (image, imageRef) {
   const addEventListener = () => {
     imageRef.value.addEventListener('mousedown', mouseDownHandler)
     imageRef.value.addEventListener('mouseup', mouseUpHandler)
-    imageRef.value.addEventListener('mouseout', mouseUpHandler)
+    // imageRef.value.addEventListener('mouseout', mouseUpHandler)
   }
 
   onMounted(() => {

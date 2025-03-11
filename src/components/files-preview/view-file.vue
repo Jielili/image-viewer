@@ -1,13 +1,16 @@
 <template>
   <div class="view-file-contaienr">
     <image-file
+      :file="file"
+    />
+    <!-- <image-file
       v-if="file.type.indexOf('image') === 0"
       :file="file"
     />
     <video-file
       v-else
       :file="file"
-    />
+    /> -->
   </div>
 </template>
 <script setup>

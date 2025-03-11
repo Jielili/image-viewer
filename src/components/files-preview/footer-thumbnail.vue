@@ -14,7 +14,7 @@
         @click="emit('update:displayIndex', index)"
       >
         <img
-          :src="getFormatImageUrl(item)"
+          :src="getImageUrl(item)"
           width="96"
           height="96"
           alt="picture"
@@ -33,7 +33,7 @@
 <script setup>
 import { CaretRightOutlined } from '@ant-design/icons-vue'
 import { toRefs } from 'vue'
-import { getFormatImageUrl } from '@/utils/fileUrl.js'
+import { getImageUrl } from '@/utils/fileUrl.js'
 const props = defineProps({
   files: {
     type: Array,

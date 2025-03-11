@@ -25,8 +25,8 @@ const displayIndex = ref(0)
 const files = [
   {
     url: "https://funplus-offer-test-oss-proxy.funplus.io/20230607/1686126579450392556.JPG",
-    width: 6600,
-    height: 3000,
+    // width: 6600,
+    // height: 3000,
     type: "image/jpeg",
     name: "IMG_2329.JPG",
     size: "2522844",
