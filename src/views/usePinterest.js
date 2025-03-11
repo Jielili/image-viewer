@@ -24,7 +24,7 @@ export default function usePinterest (list) {
   })
 
   onMounted(() => {
-    width.value = listRef.value.clientWidth
+    width.value = listRef.value.clientWidth - 200
   })
 
   watch(windowInnerWidth, () => {
