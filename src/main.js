@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import router from './router/index.js'
+
 // import './vendors/ant-design-vue.js'
 import { install } from './vendors/my-icon.js'
 import VueLazyload from 'vue3-lazyload';
@@ -12,5 +14,6 @@ const app = createApp(App)
 //   .forEach(v => v.install?.(app))
 install(app)
 app.use(VueLazyload);
+app.use(router)
 
 app.mount('#app')

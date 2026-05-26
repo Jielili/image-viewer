@@ -1,6 +1,7 @@
 <template>
   <picture-list />
   <!-- <mine /> -->
+  <router-view />
 </template>
 
 <script setup>
